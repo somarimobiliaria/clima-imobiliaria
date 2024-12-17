@@ -1,53 +1,40 @@
-// Chave da API e URL da Climatempo
-const apiKey = "0220be233357c16ece1bbcfa7d6b8933";
-const cityId = "380"; // ID de Joaçaba
-const url = `https://apiadvisor.climatempo.com.br/api/v1/weather/locale/${cityId}/current?token=${apiKey}`;
-
-// Elementos do DOM
-const localizacao = document.getElementById("localizacao");
-const iconeClima = document.getElementById("icone-clima");
-const descricaoClima = document.getElementById("descricao-clima");
-const temperatura = document.getElementById("temperatura");
-const umidade = document.getElementById("umidade");
-const sensacao = document.getElementById("sensacao");
-const pressao = document.getElementById("pressao");
-const vento = document.getElementById("vento");
-
-// Mapeamento de ícones da Climatempo para Weather Icons
-const weatherIcons = {
-    "1": "wi-day-sunny",
-    "2": "wi-day-cloudy",
-    "3": "wi-cloudy",
-    "4": "wi-showers",
-    "5": "wi-rain",
-    "6": "wi-thunderstorm",
-    "7": "wi-snow",
-    "8": "wi-fog"
-};
-
-// Função para buscar e exibir os dados do clima
 async function carregarClima() {
+    const apiUrl = 'https://proxy-climatempo.onrender.com/api/v1/weather/locale/380/current?token=0220be233357c16ece1bbcfa7d6b8933';
+    
     try {
-        const response = await fetch(url);
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error('Erro ao acessar a API');
+
         const data = await response.json();
+        const clima = document.getElementById('clima');
 
-        // Atualiza os elementos da página
-        localizacao.textContent = `${data.name}, ${data.state}`;
-        descricaoClima.textContent = data.data.condition;
-        temperatura.textContent = `Temperatura: ${data.data.temperature}°C`;
-        umidade.textContent = `Umidade: ${data.data.humidity}%`;
-        sensacao.textContent = `Sensação Térmica: ${data.data.sensation}°C`;
-        pressao.textContent = `Pressão: ${data.data.pressure} hPa`;
-        vento.textContent = `Vento: ${data.data.wind_velocity} km/h (${data.data.wind_direction})`;
+        const { temperature, condition, sensation, humidity, wind_velocity, icon } = data.data;
 
-        // Define o ícone do clima
-        const iconCode = data.data.icon;
-        iconeClima.className = `wi ${weatherIcons[iconCode] || "wi-na"}`;
+        clima.innerHTML = `
+            <i class="wi wi-day-${mapearIcone(icon)}"></i>
+            <p><strong>${condition}</strong></p>
+            <p>Temperatura: ${temperature}°C</p>
+            <p>Sensação térmica: ${sensation}°C</p>
+            <p>Umidade: ${humidity}%</p>
+            <p>Vento: ${wind_velocity} km/h</p>
+        `;
     } catch (error) {
-        console.error("Erro ao buscar os dados do clima:", error);
-        localizacao.textContent = "Erro ao carregar dados";
+        console.error('Erro ao buscar os dados do clima:', error.message);
+        document.getElementById('clima').innerText = 'Erro ao carregar dados do clima.';
     }
 }
 
-// Chama a função ao carregar a página
+function mapearIcone(icon) {
+    const icones = {
+        '1': 'sunny',
+        '2': 'cloudy',
+        '3': 'rain',
+        '4': 'storm-showers',
+        '5': 'snow',
+        '6': 'fog',
+        '7': 'showers'
+    };
+    return icones[icon] || 'cloud';
+}
+
 carregarClima();
